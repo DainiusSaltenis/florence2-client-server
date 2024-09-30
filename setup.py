@@ -9,7 +9,7 @@ setup(
         "fastapi",
         "uvicorn",
         "requests",
-        "resources"
+        "resources",
         "pillow",
         "transformers",
         "torch",
