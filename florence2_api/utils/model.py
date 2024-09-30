@@ -33,6 +33,7 @@ def inference(model, processor, image, task_prompt: str, device: str, torch_dtyp
 
     Returns:
     - generated_ids: The generated token IDs from the model.
+    - response: Processed model output.
     """
     # Prepare inputs for the model
     inputs = processor(text=task_prompt, images=image, return_tensors="pt").to(device, torch_dtype)
@@ -47,4 +48,10 @@ def inference(model, processor, image, task_prompt: str, device: str, torch_dtyp
     )
     generated_text = processor.batch_decode(generated_ids, skip_special_tokens=False)[0]
 
-    return generated_text
+    response = processor.post_process_generation(
+        generated_text,
+        task=task_prompt,
+        image_size=(image.width, image.height)
+    )
+
+    return generated_text, response

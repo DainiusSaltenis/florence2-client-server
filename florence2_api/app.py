@@ -62,7 +62,7 @@ async def generate_caption(file: UploadFile = File(...), caption_verbosity: str 
 
     image = load_image(file)
 
-    generated_text = inference(model, processor, image, task_prompt, DEVICE, TORCH_DTYPE)
+    generated_text, _ = inference(model, processor, image, task_prompt, DEVICE, TORCH_DTYPE)
 
     return {"caption": generated_text}
 
@@ -81,12 +81,6 @@ async def detect_objects(file: UploadFile = File(...)):
 
     task_prompt = "<OD>"
 
-    generated_text = inference(model, processor, image, task_prompt, DEVICE, TORCH_DTYPE)
-
-    response = processor.post_process_generation(
-        generated_text,
-        task=task_prompt,
-        image_size=(image.width, image.height)
-    )
+    _, response = inference(model, processor, image, task_prompt, DEVICE, TORCH_DTYPE)
 
     return {"detections": response}
