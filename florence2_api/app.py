@@ -84,3 +84,51 @@ async def detect_objects(file: UploadFile = File(...)):
     _, response = inference(model, processor, image, task_prompt, DEVICE, TORCH_DTYPE)
 
     return {"detections": response}
+
+
+@app.post("/detect-regions-with-captions")
+async def detect_regions_with_captions(file: UploadFile = File(...)):
+    """
+    Perform dense region caption detection on an uploaded image.
+    Args:
+    - file (UploadFile): The image file to analyze.
+
+    Returns:
+    - JSON containing dense captions with detected regions.
+    """
+    image = await load_image(file)
+
+    task_prompt = "<DENSE_REGION_CAPTION>"
+
+    _, response = inference(model, processor, image, task_prompt, DEVICE, TORCH_DTYPE)
+
+    return {"regions_with_captions": response}
+
+
+@app.post("/detect-region-proposals")
+async def detect_region_proposals(file: UploadFile = File(...)):
+    """
+    Perform region proposals on an uploaded image.
+    Args:
+    - file (UploadFile): The image file to analyze.
+
+    Returns:
+    - JSON containing region proposals.
+    """
+    image = await load_image(file)
+
+    task_prompt = "<REGION_PROPOSAL>"
+
+    _, response = inference(model, processor, image, task_prompt, DEVICE, TORCH_DTYPE)
+
+    return {"region_proposals": response}
+
+
+# TODO: caption to phrase groudning
+# TODO: <OCR>
+# TODO: <OCR_WITH_REGION>
+# TODO: <REFERRING_EXPRESSION_SEGMENTATION>
+# TODO: <REGION_TO_SEGMENTATION>
+# TODO: <OPEN_VOCABULARY_DETECTION>
+# TODO: <REGION_TO_CATEGORY>
+# TODO: <REGION_TO_DESCRIPTION>
