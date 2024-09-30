@@ -2,6 +2,8 @@ import requests
 import supervision as sv
 from PIL import Image
 
+from florence2_client.utils.image import pil_image_to_binary, load_image
+
 
 class Florence2Client:
     def __init__(self, base_url: str):
@@ -13,7 +15,7 @@ class Florence2Client:
         """
         self.base_url = base_url
 
-    def _send_request(self, endpoint: str, image_path: str, params: dict = None) -> dict:
+    def _send_request(self, endpoint: str, image: Image.Image, params: dict = None) -> dict:
         """
         Send image requests to the Florence-2 inference server.
 
@@ -25,8 +27,8 @@ class Florence2Client:
         Returns:
         - dict: JSON response from the server.
         """
-        with open(image_path, "rb") as image_file:
-            response = requests.post(f"{self.base_url}{endpoint}", files={"file": image_file}, params=params)
+        image_binary = pil_image_to_binary(image)
+        response = requests.post(f"{self.base_url}{endpoint}", files={"file": image_binary}, params=params)
 
         if response.status_code == 200:
             return response.json()
@@ -44,7 +46,8 @@ class Florence2Client:
         Returns:
         - str: The generated caption.
         """
-        result = self._send_request("/caption", image_path, {"caption_verbosity": caption_verbosity})
+        image = load_image(image_path)
+        result = self._send_request("/caption", image, {"caption_verbosity": caption_verbosity})
         return result.get("caption", "")
 
     def detect_objects(self, image_path: str) -> sv.Detections:
@@ -57,26 +60,95 @@ class Florence2Client:
         Returns:
         - sv.Detections: Detections formatted for supervision integration.
         """
-        result = self._send_request("/detect-objects", image_path)
+        image = load_image(image_path)
+        result = self._send_request("/detect-objects", image)
 
         # Convert detection results to supervision's Detections format
-        detections = sv.Detections.from_json(result["detections"])
+        detections = sv.Detections.from_lmm(sv.LMM.FLORENCE_2, result.get("detections", ""), resolution_wh=image.size)
         return detections
 
-    def visualize_detections(self, image_path: str, detections: sv.Detections) -> Image.Image:
+    def detect_regions_with_captions(self, image_path: str) -> sv.Detections:
         """
-        Visualize object detections using Roboflow Supervision.
+        Perform dense region caption detection on an uploaded image.
 
         Args:
         - image_path (str): Path to the local image file.
-        - detections (sv.Detections): Detected objects in the image.
 
         Returns:
-        - Image.Image: The image with bounding boxes drawn.
+        - sv.Detections: Detections formatted for supervision integration.
         """
-        # Load the image
-        image = Image.open(image_path).convert("RGB")
+        image = load_image(image_path)
+        result = self._send_request("/detect-regions-with-captions", image)
 
-        # Create a detection overlay using Roboflow Supervision
-        overlay = sv.draw_detections(image, detections)
-        return overlay
+        # Convert detection results to supervision's Detections format
+        detections = sv.Detections.from_lmm(sv.LMM.FLORENCE_2, result.get("regions_with_captions", ""), resolution_wh=image.size)
+        return detections
+
+    def detect_region_proposals(self, image_path: str) -> sv.Detections:
+        """
+        Perform region proposal detection on an uploaded image.
+
+        Args:
+        - image_path (str): Path to the local image file.
+
+        Returns:
+        - sv.Detections: Detections formatted for supervision integration.
+        """
+        image = load_image(image_path)
+        result = self._send_request("/detect-region-proposals", image)
+
+        # Convert detection results to supervision's Detections format
+        detections = sv.Detections.from_lmm(sv.LMM.FLORENCE_2, result.get("region_proposals", ""), resolution_wh=image.size)
+        return detections
+
+    def open_vocabulary_detection(self, image_path: str, class_name: str) -> sv.Detections:
+        """
+        Perform open vocabulary detection on an uploaded image.
+
+        Args:
+        - image_path (str): Path to the local image file.
+        - class_name (str): Which class object to detect.
+
+        Returns:
+        - sv.Detections: Detections formatted for supervision integration.
+        """
+        image = load_image(image_path)
+        result = self._send_request("/open-vocabulary-detection", image, {"class_name": class_name})
+
+        # Convert detection results to supervision's Detections format
+        detections = sv.Detections.from_lmm(sv.LMM.FLORENCE_2, result.get("detections", ""), resolution_wh=image.size)
+        return detections
+
+    def ocr(self, image_path: str) -> sv.Detections:
+        """
+        Perform ocr on an uploaded image.
+
+        Args:
+        - image_path (str): Path to the local image file.
+
+        Returns:
+        - sv.Detections: Detections formatted for supervision integration.
+        """
+        image = load_image(image_path)
+        result = self._send_request("/ocr", image)
+
+        # Convert detection results to supervision's Detections format
+        detections = sv.Detections.from_lmm(sv.LMM.FLORENCE_2, result.get("ocr", ""), resolution_wh=image.size)
+        return detections
+
+    def referring_expression_segmentation(self, image_path: str, expression: str) -> sv.Detections:
+        """
+        Perform referring expression segmentation on an uploaded image.
+
+        Args:
+        - image_path (str): Path to the local image file.
+
+        Returns:
+        - sv.Detections: Segmentation masks formatted for supervision integration.
+        """
+        image = load_image(image_path)
+        result = self._send_request("/referring-expression-segmentation", image, {"expression": expression})
+
+        # Convert segmentation results to supervision's Detections format
+        detections = sv.Detections.from_lmm(sv.LMM.FLORENCE_2, result.get("segmentation", ""), resolution_wh=image.size)
+        return detections
