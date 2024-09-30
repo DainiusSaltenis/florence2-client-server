@@ -4,6 +4,8 @@ The repo is for Florence-2 inference. It is composed of client and server parts.
 
 Server part is implemented as a FastAPI REST API uvicorn app.
 
+For the usage of client part, please see the notebook at `./resources/notebooks/florence2-client-example-use.ipynb`
+
 To run:
 
 1. clone the repo
@@ -13,3 +15,5 @@ To run:
 5. import appropriate client classes for the webserver API use as `import florence2_client`
 6. for more guidance of use and implemented code, please see the notebook at `./resources/notebooks/florence2-client-example-use.ipynb`
 7. enjoy (if it works well)
+
+:)
