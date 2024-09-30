@@ -60,7 +60,7 @@ async def generate_caption(file: UploadFile = File(...), caption_verbosity: str 
     else:
         task_prompt = "<CAPTION>"
 
-    image = load_image(file)
+    image = await load_image(file)
 
     generated_text, _ = inference(model, processor, image, task_prompt, DEVICE, TORCH_DTYPE)
 
@@ -132,3 +132,5 @@ async def detect_region_proposals(file: UploadFile = File(...)):
 # TODO: <OPEN_VOCABULARY_DETECTION>
 # TODO: <REGION_TO_CATEGORY>
 # TODO: <REGION_TO_DESCRIPTION>
+# TODO: model reloading endpoint
+# TODO: debug endpoint to get device?
