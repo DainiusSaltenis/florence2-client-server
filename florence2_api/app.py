@@ -77,9 +77,8 @@ async def detect_objects(file: UploadFile = File(...)):
     Returns:
     - JSON containing detected objects and their bounding boxes.
     """
-    image = await load_image(file)
-
     task_prompt = "<OD>"
+    image = await load_image(file)
 
     _, response = inference(model, processor, image, task_prompt, DEVICE, TORCH_DTYPE)
 
@@ -96,9 +95,8 @@ async def detect_regions_with_captions(file: UploadFile = File(...)):
     Returns:
     - JSON containing dense captions with detected regions.
     """
-    image = await load_image(file)
-
     task_prompt = "<DENSE_REGION_CAPTION>"
+    image = await load_image(file)
 
     _, response = inference(model, processor, image, task_prompt, DEVICE, TORCH_DTYPE)
 
@@ -115,22 +113,71 @@ async def detect_region_proposals(file: UploadFile = File(...)):
     Returns:
     - JSON containing region proposals.
     """
-    image = await load_image(file)
-
     task_prompt = "<REGION_PROPOSAL>"
+    image = await load_image(file)
 
     _, response = inference(model, processor, image, task_prompt, DEVICE, TORCH_DTYPE)
 
     return {"region_proposals": response}
 
 
-# TODO: caption to phrase groudning
-# TODO: <OCR>
-# TODO: <OCR_WITH_REGION>
-# TODO: <REFERRING_EXPRESSION_SEGMENTATION>
+@app.post("/open-vocabulary-detection")
+async def open_vocabulary_detection(file: UploadFile = File(...), class_name: str = ""):
+    """
+    Perform open vocabulary object detection.
+    Args:
+    - file (UploadFile): The image file to analyze.
+    - class_name (str): Which class object to detect.
+
+    Returns:
+    - JSON containing captions with detected regions.
+    """
+    task_prompt = "<OPEN_VOCABULARY_DETECTION>"
+    image = await load_image(file)
+
+    _, response = inference(model, processor, image, task_prompt, DEVICE, TORCH_DTYPE, text_input=class_name)
+
+    return {"detections": response}
+
+
+@app.post("/ocr")
+async def ocr(file: UploadFile = File(...)):
+    """
+    Perform optical character recognition.
+    Args:
+    - file (UploadFile): The image file to analyze.
+
+    Returns:
+    - JSON containing text strings with corresponding bounding boxes and strings.
+    """
+    task_prompt = "<OCR_WITH_REGION>"
+    image = await load_image(file)
+
+    _, response = inference(model, processor, image, task_prompt, DEVICE, TORCH_DTYPE)
+
+    return {"ocr": response}
+
+
+@app.post("/referring-expression-segmentation")
+async def referring_expression_segmentation(file: UploadFile = File(...), expression: str = ""):
+    """
+    Perform referring expression segmentation.
+    Args:
+    - file (UploadFile): The image file to analyze.
+    - expression (str): Expression describing the class to segment.
+
+    Returns:
+    - JSON containing text strings with corresponding segmentation masks.
+    """
+    task_prompt = "<REFERRING_EXPRESSION_SEGMENTATION>"
+    image = await load_image(file)
+
+    _, response = inference(model, processor, image, task_prompt, DEVICE, TORCH_DTYPE, text_input=expression)
+
+    return {"segmentation": response}
+
+
 # TODO: <REGION_TO_SEGMENTATION>
-# TODO: <OPEN_VOCABULARY_DETECTION>
 # TODO: <REGION_TO_CATEGORY>
 # TODO: <REGION_TO_DESCRIPTION>
-# TODO: model reloading endpoint
-# TODO: debug endpoint to get device?
+# TODO: <CAPTION_TO_PHRASE_GROUNDING>
