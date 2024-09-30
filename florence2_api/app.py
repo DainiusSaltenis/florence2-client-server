@@ -22,7 +22,6 @@ async def load_model():
     Load and cache the Florence-2 model during startup.
     """
     # Dummy input to ensure the model is loaded and cached correctly
-    # TODO: Eliminate caching and store locally / optional download if local not found
     dummy_image_url = "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/tasks/car.jpg?download=true"
     image = Image.open(requests.get(dummy_image_url, stream=True).raw)
     dummy_inputs = processor(text="<OD>", images=image, return_tensors="pt").to(DEVICE, TORCH_DTYPE)
@@ -181,3 +180,4 @@ async def referring_expression_segmentation(file: UploadFile = File(...), expres
 # TODO: <REGION_TO_CATEGORY>
 # TODO: <REGION_TO_DESCRIPTION>
 # TODO: <CAPTION_TO_PHRASE_GROUNDING>
+# TODO: Add a method to manage cached model, allow changing versions
