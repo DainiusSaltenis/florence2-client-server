@@ -1,6 +1,7 @@
 import torch
 from transformers import AutoProcessor, AutoModelForCausalLM
 
+
 def load_florence(model_name: str, device: str, torch_dtype: torch.dtype):
     """
     Load Florence-2 model and processor.
@@ -19,7 +20,7 @@ def load_florence(model_name: str, device: str, torch_dtype: torch.dtype):
     return model, processor
 
 
-def inference(model, processor, image, task_prompt: str, device: str, torch_dtype: torch.dtype):
+def inference(model, processor, image, task_prompt: str, device: str, torch_dtype: torch.dtype, text_input: str = None):
     """
     Run inference using Florence-2.
 
@@ -30,13 +31,19 @@ def inference(model, processor, image, task_prompt: str, device: str, torch_dtyp
     - task_prompt (str): The task text prompt.
     - device (str): Torch device to run inference on.
     - torch_dtype (torch.dtype): Torch data type for input tensor.
+    - text_input (Optional[str], default=None): Text to add to the task prompt.
 
     Returns:
     - generated_ids: The generated token IDs from the model.
     - response: Processed model output.
     """
+    if text_input is None:
+        prompt = task_prompt
+    else:
+        prompt = task_prompt + text_input
+
     # Prepare inputs for the model
-    inputs = processor(text=task_prompt, images=image, return_tensors="pt").to(device, torch_dtype)
+    inputs = processor(text=prompt, images=image, return_tensors="pt").to(device, torch_dtype)
 
     # Generate caption
     generated_ids = model.generate(
